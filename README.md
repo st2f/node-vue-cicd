@@ -1,0 +1,1 @@
+Project with Node, Vue JS, Mongo DB to test CI/CD workflow
