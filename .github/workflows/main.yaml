@@ -31,6 +31,11 @@ jobs:
         run: npm audit
       - name: execute test
         run: npm run test:ci
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: st2f/node-vue-cicd
 
   deploy:
     needs: tests
