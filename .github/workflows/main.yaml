@@ -10,7 +10,7 @@ env:
   SSH_KEY_VPS: ${{ secrets.SSH_KEY_VPS }}
 
 jobs:
-  tests:
+  check-tests-backend:
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -32,12 +32,63 @@ jobs:
       - name: execute test
         run: npm run test:ci
 
+  check-frontend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: install nodejs
+        uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+          cache-dependency-path: ./client/package.json
+      - name: install dependency
+        run: npm ci --prefer-offline
+      - name: verify code
+        run: npm run lint
+      - name: check packages vulerabilities
+        run: npm audit
+      - name: execute test
+        run: npm run test:ci
+  
+  build-frontend:
+    needs: check-frontend
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: install nodejs
+        uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+          cache-dependency-path: ./client/package.json
+      - name: install dependency
+        run: npm ci --prefer-offline
+      - name: build app front-end
+        run: npm run build
+      - name: build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ./client/build
+
   deploy:
-    needs: tests
+    needs: [check-tests-backend, build-frontend]
     runs-on: ubuntu-24.04
     steps:
       - name: checkout code
         uses: actions/checkout@v4
+      - name: build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: ./dist
       - name: server deploy
         run: |
           mkdir -p ~/.ssh
@@ -45,5 +96,6 @@ jobs:
           ssh-add - <<< "$SSH_KEY_VPS"
           ssh-keyscan -t rsa -H $SERVER_IP >> ~/.ssh/known_hosts
           scp -r ./server $SERVER_USER@$SERVER_IP:/var/www
+          scp -r ./dist $SERVER_USER@$SERVER_IP:/var/www
           ssh $SERVER_USER@$SERVER_IP "cd /var/www/server && npm install --omit=dev"
           ssh $SERVER_USER@$SERVER_IP "cd /var/www/server && pm2 startOrRestart ecosystem.config.js --env production & pm2 save"
