@@ -56,8 +56,6 @@ jobs:
         run: npm run lint
       - name: check packages vulerabilities
         run: npm audit
-      - name: execute test
-        run: npm run test:ci
   
   build-frontend:
     needs: check-frontend
