@@ -87,7 +87,7 @@ jobs:
 
   test-e2e-frontend:
     needs: build-frontend
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout code
         uses: actions/checkout@v4
