@@ -81,7 +81,7 @@ jobs:
       - name: build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: frontend-dist
           path: ./client/dist
           if-no-files-found: error 
 
@@ -91,25 +91,20 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v4
+      - name: get artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./client/dist
       - name: install nodejs
         uses: actions/setup-node@v4
         with:
           cache: "npm"
-          cache-dependency-path: '**/package.json'
+          cache-dependency-path: ./server/package.json
       - name: install dependency
         run: |
           cd ./server
           npm ci --prefer-offline
-      - name: build app front-end
-        run: |
-          npm run build
-          pwd
-          ls
-      - name: build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: ./client/dist
       - name: start server
         run: |
           cd ./server
@@ -123,7 +118,7 @@ jobs:
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173
-                 
+
   deploy:
     needs: [check-tests-backend, test-e2e-frontend]
     runs-on: ubuntu-24.04
@@ -133,7 +128,7 @@ jobs:
       - name: get artifact
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: frontend-dist
           path: ./client/dist
       - name: server deploy
         run: |
