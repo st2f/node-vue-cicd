@@ -85,8 +85,47 @@ jobs:
           path: ./client/dist
           if-no-files-found: error 
 
+  test-e2e-frontend:
+    needs: build-frontend
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: install nodejs
+        uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+          cache-dependency-path: '**/package.json'
+      - name: install dependency
+        run: |
+          cd ./server
+          npm ci --prefer-offline
+      - name: build app front-end
+        run: |
+          npm run build
+          pwd
+          ls
+      - name: build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: ./client/dist
+      - name: start server
+        run: |
+          cd ./server
+          npm start &
+      - name: run cypress
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./client
+          browser: chrome
+          start: npm run-preview
+          wait-on: http://localhost:4173
+          wait-on-timeout: 60
+          config: baseUrl=http://localhost:4173
+                 
   deploy:
-    needs: [check-tests-backend, build-frontend]
+    needs: [check-tests-backend, test-e2e-frontend]
     runs-on: ubuntu-24.04
     steps:
       - name: checkout code
