@@ -31,11 +31,11 @@ jobs:
         run: npm audit
       - name: execute test
         run: npm run test:ci
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: st2f/node-vue-cicd
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     slug: st2f/node-vue-cicd
 
   check-frontend:
     runs-on: ubuntu-24.04
@@ -87,7 +87,7 @@ jobs:
 
   test-e2e-frontend:
     needs: build-frontend
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout code
         uses: actions/checkout@v4
