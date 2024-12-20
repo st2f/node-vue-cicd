@@ -31,7 +31,7 @@ jobs:
         run: npm audit
       - name: execute test
         run: npm run test:ci
-      - name: Upload coverage reports to Codecov
+      - name: Upload server coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -97,7 +97,7 @@ jobs:
       #   with:
       #     name: frontend-dist
       #     path: ./client/dist
-      
+
       - name: install nodejs
         uses: actions/setup-node@v4
         with:
@@ -134,6 +134,12 @@ jobs:
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173
+
+      - name: Upload e2e coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: st2f/node-vue-cicd
 
   deploy:
     needs: [check-tests-backend, test-e2e-frontend]
