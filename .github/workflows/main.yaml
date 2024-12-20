@@ -91,24 +91,40 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v4
-      - name: get artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: ./client/dist
+      
+      # - name: get artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: frontend-dist
+      #     path: ./client/dist
+      
       - name: install nodejs
         uses: actions/setup-node@v4
         with:
           cache: "npm"
-          cache-dependency-path: ./server/package.json
-      - name: install dependency
+          # cache-dependency-path: ./server/package.json
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: install client dependencies
+        run: |
+          cd client
+          npm ci --prefer-offline
+
+      - name: build frontend
+        run: |
+          cd client
+          npm run build:e2e
+
+      - name: install server dependencies
         run: |
           cd ./server
           npm ci --prefer-offline
+
       - name: start server
         run: |
           cd ./server
           npm start &
+
       - name: run cypress
         uses: cypress-io/github-action@v6
         with:
